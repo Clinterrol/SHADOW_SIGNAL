@@ -51,6 +51,10 @@ class SignalSystem:
             self.towers_active += 1
         self.stability = min(SIGNAL_MAX, self.stability + boost)
 
+    def force_interference(self, duration=2.0):
+        self._pulse_active = True
+        self._pulse_duration = duration
+
     @property
     def stability_pct(self):
         return self.stability / SIGNAL_MAX

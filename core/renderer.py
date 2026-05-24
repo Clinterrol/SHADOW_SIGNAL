@@ -1,3 +1,4 @@
+
 import pygame
 import math
 import random
@@ -66,6 +67,22 @@ class Renderer:
                         self.screen, (0, 100, 40), screen_rect.center, 4
                     )
 
+    def draw_lore_notes(self, notes, camera):
+        font = pygame.font.SysFont("consolas", 10, bold=True)
+        for note in notes:
+            if note.collected:
+                continue
+            if not camera.is_visible(note.rect):
+                continue
+            screen_rect = camera.apply(note.rect)
+            pygame.draw.rect(self.screen, (40, 35, 5), screen_rect)
+            pygame.draw.rect(self.screen, (180, 160, 0), screen_rect, 1)
+            lbl = font.render("!", True, (200, 180, 0))
+            self.screen.blit(lbl, (
+                screen_rect.centerx - lbl.get_width()  // 2,
+                screen_rect.centery - lbl.get_height() // 2
+            ))
+
     def draw_items(self, items, camera):
         font = pygame.font.SysFont("consolas", 11, bold=True)
         for item in items:
@@ -92,23 +109,68 @@ class Renderer:
             cx = screen_rect.centerx
             cy = screen_rect.centery
 
-            # Body
-            pygame.draw.circle(self.screen, (60, 0, 80), (cx, cy), 11)
-            pygame.draw.circle(self.screen, (120, 0, 160), (cx, cy), 11, 2)
+            entity_type = type(entity).__name__
 
-            # Eyes
-            pygame.draw.circle(self.screen, (220, 0, 0), (cx - 4, cy - 2), 2)
-            pygame.draw.circle(self.screen, (220, 0, 0), (cx + 4, cy - 2), 2)
+            if entity_type == "Watcher":
+                # Large dark purple circle
+                pygame.draw.circle(self.screen, (60, 0, 80), (cx, cy), 11)
+                pygame.draw.circle(self.screen, (120, 0, 160), (cx, cy), 11, 2)
+                # Red eyes
+                pygame.draw.circle(self.screen, (220, 0, 0), (cx-4, cy-2), 2)
+                pygame.draw.circle(self.screen, (220, 0, 0), (cx+4, cy-2), 2)
+                if entity.state == "frozen":
+                    pygame.draw.circle(
+                        self.screen, (0, 100, 220), (cx, cy), 13, 2
+                    )
+                elif entity.state == "chase":
+                    pygame.draw.circle(
+                        self.screen, (180, 0, 0), (cx, cy), 13, 1
+                    )
 
-            # State indicators
-            if entity.state == "frozen":
-                pygame.draw.circle(
-                    self.screen, (0, 100, 220), (cx, cy), 13, 2
+            elif entity_type == "Crawler":
+                # Small brown/orange — low to ground
+                pygame.draw.ellipse(
+                    self.screen, (80, 40, 0),
+                    pygame.Rect(cx-8, cy-5, 16, 10)
                 )
-            elif entity.state == "chase":
-                pygame.draw.circle(
-                    self.screen, (180, 0, 0), (cx, cy), 13, 1
+                pygame.draw.ellipse(
+                    self.screen, (140, 70, 0),
+                    pygame.Rect(cx-8, cy-5, 16, 10), 1
                 )
+                # Tiny eyes
+                pygame.draw.circle(
+                    self.screen, (255, 100, 0), (cx-3, cy-1), 1
+                )
+                pygame.draw.circle(
+                    self.screen, (255, 100, 0), (cx+3, cy-1), 1
+                )
+                if entity.state == "hidden":
+                    # Dotted outline — barely visible
+                    pygame.draw.ellipse(
+                        self.screen, (40, 20, 0),
+                        pygame.Rect(cx-8, cy-5, 16, 10), 1
+                    )
+
+            elif entity_type == "Mimic":
+                # Blue-grey humanoid shape
+                pygame.draw.circle(self.screen, (40, 40, 80), (cx, cy), 10)
+                pygame.draw.circle(self.screen, (80, 80, 160), (cx, cy), 10, 2)
+                # White eyes — unsettling
+                pygame.draw.circle(
+                    self.screen, (220, 220, 255), (cx-3, cy-2), 2
+                )
+                pygame.draw.circle(
+                    self.screen, (220, 220, 255), (cx+3, cy-2), 2
+                )
+                if entity.state == "lure":
+                    # Glowing outline when luring
+                    pygame.draw.circle(
+                        self.screen, (100, 100, 200), (cx, cy), 13, 1
+                    )
+                elif entity.state in ("chase", "strike"):
+                    pygame.draw.circle(
+                        self.screen, (180, 0, 0), (cx, cy), 13, 1
+                    )
 
     def draw_player(self, player, camera):
         screen_rect = camera.apply(player.rect)

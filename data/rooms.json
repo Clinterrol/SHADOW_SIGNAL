@@ -1,0 +1,86 @@
+{
+  "map_name": "Facility B-07",
+  "description": "Underground research facility, Sector Null",
+  "grid": [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,3,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,0,0,0,0,0,3,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,3,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+  ],
+  "lore_notes": [
+    {
+      "id": "note_01",
+      "tile_x": 5,
+      "tile_y": 2,
+      "title": "Research Log 001",
+      "content": "Day 1: Signal towers installed across all sectors. Dr. Reyes says the field should keep the anomaly contained. I hope he's right."
+    },
+    {
+      "id": "note_02",
+      "tile_x": 30,
+      "tile_y": 3,
+      "title": "Warning Notice",
+      "content": "SECTOR B RESTRICTED. Do not enter after 2200 hours. The shadows move differently here. Report any visual anomalies to security immediately."
+    },
+    {
+      "id": "note_03",
+      "tile_x": 10,
+      "tile_y": 11,
+      "title": "Personal Journal",
+      "content": "It followed me from Lab 3 to the corridor. I turned on every light I could find. It stopped. But when the power flickered... God, it moved so fast."
+    },
+    {
+      "id": "note_04",
+      "tile_x": 25,
+      "tile_y": 11,
+      "title": "Maintenance Report",
+      "content": "Signal tower in Sector C is offline. Cause unknown. Attempting manual restart failed. Whatever drained it did so in under 4 minutes."
+    },
+    {
+      "id": "note_05",
+      "tile_x": 5,
+      "tile_y": 17,
+      "title": "Final Transmission",
+      "content": "If anyone reads this — the signal is the only thing keeping it back. Don't let it drop to zero. Whatever you do. Don't. Let. It. Drop."
+    },
+    {
+      "id": "note_06",
+      "tile_x": 32,
+      "tile_y": 17,
+      "title": "Dr. Reyes Notes",
+      "content": "Subject designation: The Watcher. Thrives in electromagnetic dead zones. Light disrupts its movement. Darkness is its domain. We made a terrible mistake bringing it here."
+    }
+  ],
+  "enemy_spawns": [
+    {"tile_x": 35, "tile_y": 5},
+    {"tile_x": 2,  "tile_y": 17}
+  ],
+  "item_spawns": [
+    {"kind": "battery", "tile_x": 8,  "tile_y": 2},
+    {"kind": "medkit",  "tile_x": 30, "tile_y": 2},
+    {"kind": "battery", "tile_x": 15, "tile_y": 9},
+    {"kind": "medkit",  "tile_x": 25, "tile_y": 12},
+    {"kind": "battery", "tile_x": 5,  "tile_y": 18},
+    {"kind": "battery", "tile_x": 35, "tile_y": 18},
+    {"kind": "medkit",  "tile_x": 19, "tile_y": 11}
+  ],
+  "player_spawn": {"tile_x": 3, "tile_y": 3}
+}

@@ -1,4 +1,6 @@
 import pygame
+import json
+import os
 from settings import *
 
 TILE_FLOOR = 0
@@ -8,14 +10,30 @@ TILE_TOWER = 3
 
 
 class Tilemap:
-    def __init__(self):
-        self.grid = self._load_map()
+    def __init__(self, map_file="data/rooms.json"):
+        self._wall_cache = {}
+        self.lore_positions = {}
+
+        if os.path.exists(map_file):
+            self._load_from_json(map_file)
+        else:
+            self.grid = self._fallback_map()
+
         self.rows = len(self.grid)
         self.cols = len(self.grid[0])
-        self._wall_cache = {}
         self._build_wall_cache()
 
-    def _load_map(self):
+    def _load_from_json(self, filepath):
+        with open(filepath, "r") as f:
+            data = json.load(f)
+        self.grid = data.get("grid", self._fallback_map())
+
+        # Store lore note positions
+        for note in data.get("lore_notes", []):
+            key = (note["tile_x"], note["tile_y"])
+            self.lore_positions[key] = note
+
+    def _fallback_map(self):
         W = TILE_WALL
         F = TILE_FLOOR
         D = TILE_DOOR
@@ -72,3 +90,6 @@ class Tilemap:
                 if tile == TILE_TOWER:
                     towers.append((c, r))
         return towers
+
+    def get_lore_at(self, tile_x, tile_y):
+        return self.lore_positions.get((tile_x, tile_y))
