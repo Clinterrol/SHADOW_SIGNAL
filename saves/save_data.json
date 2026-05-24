@@ -1,0 +1,110 @@
+{
+  "player": {
+    "health": 100,
+    "tile_x": 9,
+    "tile_y": 6
+  },
+  "flashlight": {
+    "battery": 61.97999999999714,
+    "is_on": true
+  },
+  "signal": {
+    "stability": 70.01440000000233,
+    "towers_active": 0
+  },
+  "towers": [
+    {
+      "active": false,
+      "tile_x": 3,
+      "tile_y": 3
+    },
+    {
+      "active": false,
+      "tile_x": 33,
+      "tile_y": 3
+    },
+    {
+      "active": false,
+      "tile_x": 19,
+      "tile_y": 11
+    },
+    {
+      "active": false,
+      "tile_x": 4,
+      "tile_y": 17
+    }
+  ],
+  "items": [
+    {
+      "kind": "battery",
+      "tile_x": 8,
+      "tile_y": 2,
+      "active": true
+    },
+    {
+      "kind": "medkit",
+      "tile_x": 30,
+      "tile_y": 2,
+      "active": true
+    },
+    {
+      "kind": "battery",
+      "tile_x": 15,
+      "tile_y": 9,
+      "active": true
+    },
+    {
+      "kind": "medkit",
+      "tile_x": 25,
+      "tile_y": 12,
+      "active": true
+    },
+    {
+      "kind": "battery",
+      "tile_x": 5,
+      "tile_y": 18,
+      "active": true
+    },
+    {
+      "kind": "battery",
+      "tile_x": 35,
+      "tile_y": 18,
+      "active": true
+    },
+    {
+      "kind": "medkit",
+      "tile_x": 19,
+      "tile_y": 11,
+      "active": true
+    }
+  ],
+  "lore_notes": [
+    {
+      "id": "note_01",
+      "collected": false
+    },
+    {
+      "id": "note_02",
+      "collected": false
+    },
+    {
+      "id": "note_03",
+      "collected": false
+    },
+    {
+      "id": "note_04",
+      "collected": false
+    },
+    {
+      "id": "note_05",
+      "collected": false
+    },
+    {
+      "id": "note_06",
+      "collected": false
+    }
+  ],
+  "sanity": {
+    "sanity": 100.0
+  }
+}

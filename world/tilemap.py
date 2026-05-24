@@ -14,21 +14,29 @@ class Tilemap:
         self._wall_cache = {}
         self.lore_positions = {}
 
+        print(f"[Tilemap] Looking for: {os.path.abspath(map_file)}")
+        print(f"[Tilemap] File exists: {os.path.exists(map_file)}")
+
         if os.path.exists(map_file):
             self._load_from_json(map_file)
         else:
+            print("[Tilemap] File not found, using fallback map")
             self.grid = self._fallback_map()
 
         self.rows = len(self.grid)
         self.cols = len(self.grid[0])
+        print(f"[Tilemap] Grid size: {self.rows} rows x {self.cols} cols")
+        print(f"[Tilemap] Row 0: {self.grid[0][:10]}")
+        print(f"[Tilemap] Row 1: {self.grid[1][:10]}")
         self._build_wall_cache()
 
     def _load_from_json(self, filepath):
+        print(f"[Tilemap] Loading: {os.path.abspath(filepath)}")
         with open(filepath, "r") as f:
             data = json.load(f)
         self.grid = data.get("grid", self._fallback_map())
+        print(f"[Tilemap] Grid rows loaded: {len(self.grid)}")
 
-        # Store lore note positions
         for note in data.get("lore_notes", []):
             key = (note["tile_x"], note["tile_y"])
             self.lore_positions[key] = note

@@ -12,7 +12,7 @@ class Player:
             TILE_SIZE - 4
         )
         self.health       = PLAYER_MAX_HEALTH
-        self.facing       = "right"
+        self.facing       = "down"
         self.is_crouching = False
         self.is_sprinting = False
         self.is_moving    = False
@@ -20,10 +20,26 @@ class Player:
         self.vel_y        = 0.0
         self.sound_radius = SOUND_RADIUS_WALK
 
+        # Animation
+        self._anim_timer  = 0.0
+        self._anim_speed  = 0.15   # seconds per frame
+        self._frame_index = 0
+
     def update(self, dt, tilemap):
         self._handle_input()
         self._move(dt, tilemap)
         self._update_sound_radius()
+        self._update_animation(dt)
+
+    def _update_animation(self, dt):
+        if self.is_moving:
+            self._anim_timer += dt
+            if self._anim_timer >= self._anim_speed:
+                self._anim_timer  = 0.0
+                self._frame_index = (self._frame_index + 1) % 4
+        else:
+            self._frame_index = 0
+            self._anim_timer  = 0.0
 
     def _handle_input(self):
         keys = pygame.key.get_pressed()

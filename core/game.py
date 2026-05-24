@@ -33,6 +33,7 @@ class Game:
         self.lore_display = None
         self.settings_menu = None
         self.save_manager = None
+        self.sprite_manager = None
 
     def show_title(self):
         from ui.menu import MainMenu
@@ -76,12 +77,15 @@ class Game:
         from ui.lore_display import LoreDisplay
         from ui.settings_menu import SettingsMenu
         from saves.save_manager import SaveManager
+        from core.sprite_manager import SpriteManager
 
         map_loader = MapLoader("data/rooms.json")
 
         self.tilemap = Tilemap("data/rooms.json")
         self.camera = Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.renderer = Renderer(self.screen)
+        self.sprite_manager = SpriteManager()
+        self.sprite_manager.load_all()
         self.flashlight = Flashlight()
         self.signal_sys = SignalSystem()
         self.event_sys = EventSystem(self)
@@ -94,6 +98,7 @@ class Game:
         self.lore_display = LoreDisplay(self.screen)
         self.settings_menu = SettingsMenu(self.screen)
         self.save_manager = SaveManager()
+    
 
         px, py = map_loader.player_spawn
         self.player = Player(self, px, py)
@@ -304,7 +309,7 @@ class Game:
                 self.settings_menu.draw()
 
         elif self.state == STATE_PLAYING:
-            self.renderer.draw_map(self.tilemap, self.camera)
+            self.renderer.draw_map(self.tilemap, self.camera, self.sprite_manager)
             self.renderer.draw_towers(self.towers, self.camera)
             self.renderer.draw_lore_notes(self.lore_notes, self.camera)
             self.renderer.draw_items(self.items, self.camera)
@@ -312,7 +317,7 @@ class Game:
                 self.watchers + self.crawlers + self.mimics,
                 self.camera
             )
-            self.renderer.draw_player(self.player, self.camera)
+            self.renderer.draw_player(self.player, self.camera, self.sprite_manager)
             self.renderer.draw_flashlight(
                 self.player, self.camera, self.flashlight
             )
@@ -329,7 +334,7 @@ class Game:
             self._draw_save_hint()
 
         elif self.state == STATE_PAUSED:
-            self.renderer.draw_map(self.tilemap, self.camera)
+            self.renderer.draw_map(self.tilemap, self.camera, self.sprite_manager)
             self.renderer.draw_towers(self.towers, self.camera)
             self.renderer.draw_lore_notes(self.lore_notes, self.camera)
             self.renderer.draw_items(self.items, self.camera)
@@ -337,7 +342,7 @@ class Game:
                 self.watchers + self.crawlers + self.mimics,
                 self.camera
             )
-            self.renderer.draw_player(self.player, self.camera)
+            self.renderer.draw_player(self.player, self.camera, self.sprite_manager)
             self._draw_pause()
 
         elif self.state == STATE_GAMEOVER:

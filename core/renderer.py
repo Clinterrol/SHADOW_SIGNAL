@@ -1,4 +1,3 @@
-
 import pygame
 import math
 import random
@@ -11,8 +10,40 @@ class Renderer:
         self._dark_overlay = pygame.Surface(
             (SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA
         )
+        self._floor_cache  = None
 
-    def draw_map(self, tilemap, camera):
+    def draw_map(self, tilemap, camera, sprite_manager=None):
+        # Draw floor texture once across entire map
+        if sprite_manager:
+            floor_tex = sprite_manager.get_tile("floor")
+            if floor_tex:
+                if self._floor_cache is None:
+                    map_w = tilemap.cols * TILE_SIZE
+                    map_h = tilemap.rows * TILE_SIZE
+                    self._floor_cache = pygame.transform.scale(
+                        floor_tex, (map_w, map_h)
+                    )
+                origin = camera.apply(pygame.Rect(
+                    0, 0, tilemap.cols * TILE_SIZE, tilemap.rows * TILE_SIZE
+                ))
+                self.screen.blit(self._floor_cache, origin.topleft)
+            else:
+                # fallback solid floor
+                for row_idx, row in enumerate(tilemap.grid):
+                    for col_idx, tile in enumerate(row):
+                        if tile in (0, 3):
+                            world_rect = pygame.Rect(
+                                col_idx * TILE_SIZE,
+                                row_idx * TILE_SIZE,
+                                TILE_SIZE, TILE_SIZE
+                            )
+                            if camera.is_visible(world_rect):
+                                screen_rect = camera.apply(world_rect)
+                                pygame.draw.rect(
+                                    self.screen, (85, 75, 90), screen_rect
+                                )
+
+        # Draw walls and doors on top
         for row_idx, row in enumerate(tilemap.grid):
             for col_idx, tile in enumerate(row):
                 world_rect = pygame.Rect(
@@ -24,25 +55,27 @@ class Renderer:
                     continue
                 screen_rect = camera.apply(world_rect)
                 if tile == 1:
-                    self._draw_wall(screen_rect)
-                elif tile == 0:
-                    self._draw_floor(screen_rect)
+                    self._draw_wall(screen_rect, sprite_manager)
                 elif tile == 2:
-                    self._draw_door(screen_rect)
-                elif tile == 3:
-                    self._draw_floor(screen_rect)
+                    self._draw_door(screen_rect, sprite_manager)
 
-    def _draw_floor(self, rect):
-        pygame.draw.rect(self.screen, (18, 18, 18), rect)
-        pygame.draw.rect(self.screen, (28, 28, 28), rect, 1)
-
-    def _draw_wall(self, rect):
+    def _draw_wall(self, rect, sprite_manager=None):
+        if sprite_manager:
+            tile = sprite_manager.get_tile("wall")
+            if tile:
+                self.screen.blit(tile, rect)
+                return
         pygame.draw.rect(self.screen, (8, 8, 8), rect)
         inner = rect.inflate(-4, -4)
         pygame.draw.rect(self.screen, (14, 14, 14), inner)
         pygame.draw.rect(self.screen, (5, 5, 5), rect, 1)
 
-    def _draw_door(self, rect):
+    def _draw_door(self, rect, sprite_manager=None):
+        if sprite_manager:
+            tile = sprite_manager.get_tile("door")
+            if tile:
+                self.screen.blit(tile, rect)
+                return
         pygame.draw.rect(self.screen, (35, 20, 10), rect)
         pygame.draw.rect(self.screen, (80, 40, 10), rect, 2)
         pygame.draw.circle(self.screen, (120, 60, 10),
@@ -108,14 +141,11 @@ class Renderer:
             screen_rect = camera.apply(entity.rect)
             cx = screen_rect.centerx
             cy = screen_rect.centery
-
             entity_type = type(entity).__name__
 
             if entity_type == "Watcher":
-                # Large dark purple circle
                 pygame.draw.circle(self.screen, (60, 0, 80), (cx, cy), 11)
                 pygame.draw.circle(self.screen, (120, 0, 160), (cx, cy), 11, 2)
-                # Red eyes
                 pygame.draw.circle(self.screen, (220, 0, 0), (cx-4, cy-2), 2)
                 pygame.draw.circle(self.screen, (220, 0, 0), (cx+4, cy-2), 2)
                 if entity.state == "frozen":
@@ -128,7 +158,6 @@ class Renderer:
                     )
 
             elif entity_type == "Crawler":
-                # Small brown/orange — low to ground
                 pygame.draw.ellipse(
                     self.screen, (80, 40, 0),
                     pygame.Rect(cx-8, cy-5, 16, 10)
@@ -137,25 +166,16 @@ class Renderer:
                     self.screen, (140, 70, 0),
                     pygame.Rect(cx-8, cy-5, 16, 10), 1
                 )
-                # Tiny eyes
                 pygame.draw.circle(
                     self.screen, (255, 100, 0), (cx-3, cy-1), 1
                 )
                 pygame.draw.circle(
                     self.screen, (255, 100, 0), (cx+3, cy-1), 1
                 )
-                if entity.state == "hidden":
-                    # Dotted outline — barely visible
-                    pygame.draw.ellipse(
-                        self.screen, (40, 20, 0),
-                        pygame.Rect(cx-8, cy-5, 16, 10), 1
-                    )
 
             elif entity_type == "Mimic":
-                # Blue-grey humanoid shape
                 pygame.draw.circle(self.screen, (40, 40, 80), (cx, cy), 10)
                 pygame.draw.circle(self.screen, (80, 80, 160), (cx, cy), 10, 2)
-                # White eyes — unsettling
                 pygame.draw.circle(
                     self.screen, (220, 220, 255), (cx-3, cy-2), 2
                 )
@@ -163,7 +183,6 @@ class Renderer:
                     self.screen, (220, 220, 255), (cx+3, cy-2), 2
                 )
                 if entity.state == "lure":
-                    # Glowing outline when luring
                     pygame.draw.circle(
                         self.screen, (100, 100, 200), (cx, cy), 13, 1
                     )
@@ -172,14 +191,24 @@ class Renderer:
                         self.screen, (180, 0, 0), (cx, cy), 13, 1
                     )
 
-    def draw_player(self, player, camera):
+    def draw_player(self, player, camera, sprite_manager=None):
         screen_rect = camera.apply(player.rect)
         cx = screen_rect.centerx
         cy = screen_rect.centery
 
+        if sprite_manager and sprite_manager.has_sprite("player"):
+            frame = sprite_manager.get_player_frame(
+                player.facing, player._frame_index
+            )
+            if frame:
+                self.screen.blit(frame, (
+                    cx - frame.get_width()  // 2,
+                    cy - frame.get_height() // 2
+                ))
+                return
+
         pygame.draw.circle(self.screen, (50, 50, 55), (cx, cy), 10)
         pygame.draw.circle(self.screen, (90, 90, 100), (cx, cy), 10, 2)
-
         offset = 7
         facing_offsets = {
             "up":    (0,       -offset),
@@ -191,7 +220,6 @@ class Renderer:
         pygame.draw.circle(
             self.screen, (200, 200, 220), (cx + dx, cy + dy), 3
         )
-
         if player.is_crouching:
             pygame.draw.circle(self.screen, (180, 140, 0), (cx, cy), 12, 1)
         elif player.is_sprinting:
