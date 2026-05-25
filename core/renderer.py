@@ -132,7 +132,7 @@ class Renderer:
                 screen_rect.centery - lbl.get_height() // 2
             ))
 
-    def draw_entities(self, entities, camera):
+    def draw_entities(self, entities, camera, sprite_manager=None):
         for entity in entities:
             if not entity.alive:
                 continue

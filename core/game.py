@@ -315,7 +315,8 @@ class Game:
             self.renderer.draw_items(self.items, self.camera)
             self.renderer.draw_entities(
                 self.watchers + self.crawlers + self.mimics,
-                self.camera
+                self.camera,
+                self.sprite_manager
             )
             self.renderer.draw_player(self.player, self.camera, self.sprite_manager)
             self.renderer.draw_flashlight(
@@ -340,7 +341,8 @@ class Game:
             self.renderer.draw_items(self.items, self.camera)
             self.renderer.draw_entities(
                 self.watchers + self.crawlers + self.mimics,
-                self.camera
+                self.camera,
+                self.sprite_manager
             )
             self.renderer.draw_player(self.player, self.camera, self.sprite_manager)
             self._draw_pause()

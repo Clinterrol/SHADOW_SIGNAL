@@ -35,3 +35,4 @@ class Item:
             "medkit":  "+",
             "keycard": "K",
         }.get(self.kind, "?")
+    

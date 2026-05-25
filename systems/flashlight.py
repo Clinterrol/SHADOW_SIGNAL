@@ -67,3 +67,5 @@ class Flashlight:
         if self.is_flickering: return "UNSTABLE"
         if not self.is_on:     return "OFF"
         return "ON"
+    
+    
