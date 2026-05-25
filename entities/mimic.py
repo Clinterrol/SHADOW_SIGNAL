@@ -34,6 +34,8 @@ class Mimic:
         ]
         self.current_lure = ""
 
+        self.sound_manager = None  # injected from game._init_systems()
+
     def update(self, dt, player, signal_sys, tilemap):
         if not self.alive:
             return
@@ -79,6 +81,12 @@ class Mimic:
         self._lure_active   = True
         self._lure_duration = random.uniform(4.0, 8.0)
         self.current_lure   = random.choice(self._lure_messages)
+        
+        if self.sound_manager:
+            sound_map = getattr(self.sound_manager, 'mimic_sound_map', {})
+            key = sound_map.get(self.current_lure)
+            if key:
+                self.sound_manager.play(key, volume=0.85)
 
     def _update_speed(self, signal_sys):
         if self.state in ("idle", "lure"):
@@ -102,11 +110,9 @@ class Mimic:
             self.vel_x = (dx / dist) * self.speed
             self.vel_y = (dy / dist) * self.speed
         elif self.state == "lure":
-            # Move slowly toward player to lure
             dx   = player.rect.centerx - self.rect.centerx
             dy   = player.rect.centery - self.rect.centery
             dist = max(1, (dx*dx + dy*dy) ** 0.5)
-            # Only move if far enough
             if dist > TILE_SIZE * 6:
                 self.vel_x = (dx / dist) * self.speed
                 self.vel_y = (dy / dist) * self.speed

@@ -14,7 +14,6 @@ class JumpscareSystem:
         self._alpha         = 0
         self._phase         = "in"
 
-        # Fake glitch jumpscare messages
         self._messages = [
             "IT SEES YOU",
             "RUN",
@@ -23,23 +22,22 @@ class JumpscareSystem:
         ]
         self._current_msg = ""
 
+        self.sound_manager = None  # injected from game._init_systems()
+
     def update(self, dt, player, watchers, signal_sys):
         self._cooldown = max(0.0, self._cooldown - dt)
 
         if self.active:
             self._timer += dt
-            # Fade in
             if self._phase == "in":
                 self._alpha = min(255, int(255 * (self._timer / 0.1)))
                 if self._timer >= 0.1:
                     self._phase = "hold"
                     self._timer = 0.0
-            # Hold
             elif self._phase == "hold":
                 if self._timer >= 0.15:
                     self._phase = "out"
                     self._timer = 0.0
-            # Fade out
             elif self._phase == "out":
                 self._alpha = max(0, int(255 * (1 - self._timer / 0.15)))
                 if self._timer >= 0.15:
@@ -48,7 +46,6 @@ class JumpscareSystem:
                     self._timer = 0.0
             return
 
-        # Trigger conditions
         if self._cooldown > 0:
             return
 
@@ -59,7 +56,6 @@ class JumpscareSystem:
                 self._trigger()
                 return
 
-        # Random scare at low signal
         if signal_sys.is_critical and random.random() < 0.001:
             self._trigger()
 
@@ -70,6 +66,17 @@ class JumpscareSystem:
         self._alpha       = 0
         self._cooldown    = self._cooldown_time
         self._current_msg = random.choice(self._messages)
+
+        # --- JUMPSCARE STING SOUND ---
+        # Each message maps to its own sting file in sound_manager.py
+        # Files: assets/sounds/sfx/jumpscare_seesyou.wav
+        #        assets/sounds/sfx/jumpscare_run.wav
+        #        assets/sounds/sfx/jumpscare_behind.wav
+        #        assets/sounds/sfx/jumpscare_dontlook.wav
+        if self.sound_manager:
+            key = self.sound_manager.jumpscare_sound_map.get(self._current_msg)
+            if key:
+                self.sound_manager.play(key, volume=1.0)
 
     def draw(self):
         if not self.active:

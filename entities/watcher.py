@@ -25,6 +25,10 @@ class Watcher:
         self._roam_dy      = 0.0
         self.color         = (60, 0, 80)
 
+        self._prev_state   = "idle"  # track state changes for sound triggers
+
+        self.sound_manager = None  # injected from game._init_systems()
+
     def update(self, dt, player, flashlight, signal_sys, tilemap):
         if not self.alive:
             return
@@ -44,11 +48,22 @@ class Watcher:
             self._freeze_timer = 0.8
             self.state         = "frozen"
         elif dist <= self.detect_range:
+            self._on_enter_chase()
             self.state = "chase"
         elif signal_sys.is_blackout:
+            self._on_enter_chase()
             self.state = "chase"
         else:
             self.state = "roam"
+
+        self._prev_state = self.state
+
+    def _on_enter_chase(self):
+        # --- WATCHER GROWL SOUND ---
+        # Plays once when watcher transitions into chase state
+        # Change filename: assets/sounds/sfx/watcher_growl.wav
+        if self._prev_state != "chase" and self.sound_manager:
+            self.sound_manager.play("watcher_growl", volume=0.8)
 
     def _update_speed(self, signal_sys):
         if self.state == "frozen":

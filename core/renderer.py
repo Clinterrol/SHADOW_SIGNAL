@@ -10,40 +10,8 @@ class Renderer:
         self._dark_overlay = pygame.Surface(
             (SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA
         )
-        self._floor_cache  = None
 
     def draw_map(self, tilemap, camera, sprite_manager=None):
-        # Draw floor texture once across entire map
-        if sprite_manager:
-            floor_tex = sprite_manager.get_tile("floor")
-            if floor_tex:
-                if self._floor_cache is None:
-                    map_w = tilemap.cols * TILE_SIZE
-                    map_h = tilemap.rows * TILE_SIZE
-                    self._floor_cache = pygame.transform.scale(
-                        floor_tex, (map_w, map_h)
-                    )
-                origin = camera.apply(pygame.Rect(
-                    0, 0, tilemap.cols * TILE_SIZE, tilemap.rows * TILE_SIZE
-                ))
-                self.screen.blit(self._floor_cache, origin.topleft)
-            else:
-                # fallback solid floor
-                for row_idx, row in enumerate(tilemap.grid):
-                    for col_idx, tile in enumerate(row):
-                        if tile in (0, 3):
-                            world_rect = pygame.Rect(
-                                col_idx * TILE_SIZE,
-                                row_idx * TILE_SIZE,
-                                TILE_SIZE, TILE_SIZE
-                            )
-                            if camera.is_visible(world_rect):
-                                screen_rect = camera.apply(world_rect)
-                                pygame.draw.rect(
-                                    self.screen, (85, 75, 90), screen_rect
-                                )
-
-        # Draw walls and doors on top
         for row_idx, row in enumerate(tilemap.grid):
             for col_idx, tile in enumerate(row):
                 world_rect = pygame.Rect(
@@ -56,8 +24,21 @@ class Renderer:
                 screen_rect = camera.apply(world_rect)
                 if tile == 1:
                     self._draw_wall(screen_rect, sprite_manager)
+                elif tile == 0:
+                    self._draw_floor(screen_rect, sprite_manager)
                 elif tile == 2:
                     self._draw_door(screen_rect, sprite_manager)
+                elif tile == 3:
+                    self._draw_floor(screen_rect, sprite_manager)
+
+    def _draw_floor(self, rect, sprite_manager=None):
+        if sprite_manager:
+            tile = sprite_manager.get_tile("floor")
+            if tile:
+                self.screen.blit(tile, rect)
+                return
+        pygame.draw.rect(self.screen, (18, 18, 18), rect)
+        pygame.draw.rect(self.screen, (28, 28, 28), rect, 1)
 
     def _draw_wall(self, rect, sprite_manager=None):
         if sprite_manager:
@@ -141,9 +122,18 @@ class Renderer:
             screen_rect = camera.apply(entity.rect)
             cx = screen_rect.centerx
             cy = screen_rect.centery
-            entity_type = type(entity).__name__
+            entity_type = type(entity).__name__.lower()
 
-            if entity_type == "Watcher":
+            if sprite_manager:
+                img = sprite_manager.get_enemy(entity_type)
+                if img:
+                    self.screen.blit(img, (
+                        cx - img.get_width()  // 2,
+                        cy - img.get_height() // 2
+                    ))
+                    continue
+
+            if entity_type == "watcher":
                 pygame.draw.circle(self.screen, (60, 0, 80), (cx, cy), 11)
                 pygame.draw.circle(self.screen, (120, 0, 160), (cx, cy), 11, 2)
                 pygame.draw.circle(self.screen, (220, 0, 0), (cx-4, cy-2), 2)
@@ -156,8 +146,7 @@ class Renderer:
                     pygame.draw.circle(
                         self.screen, (180, 0, 0), (cx, cy), 13, 1
                     )
-
-            elif entity_type == "Crawler":
+            elif entity_type == "crawler":
                 pygame.draw.ellipse(
                     self.screen, (80, 40, 0),
                     pygame.Rect(cx-8, cy-5, 16, 10)
@@ -166,30 +155,9 @@ class Renderer:
                     self.screen, (140, 70, 0),
                     pygame.Rect(cx-8, cy-5, 16, 10), 1
                 )
-                pygame.draw.circle(
-                    self.screen, (255, 100, 0), (cx-3, cy-1), 1
-                )
-                pygame.draw.circle(
-                    self.screen, (255, 100, 0), (cx+3, cy-1), 1
-                )
-
-            elif entity_type == "Mimic":
+            elif entity_type == "mimic":
                 pygame.draw.circle(self.screen, (40, 40, 80), (cx, cy), 10)
                 pygame.draw.circle(self.screen, (80, 80, 160), (cx, cy), 10, 2)
-                pygame.draw.circle(
-                    self.screen, (220, 220, 255), (cx-3, cy-2), 2
-                )
-                pygame.draw.circle(
-                    self.screen, (220, 220, 255), (cx+3, cy-2), 2
-                )
-                if entity.state == "lure":
-                    pygame.draw.circle(
-                        self.screen, (100, 100, 200), (cx, cy), 13, 1
-                    )
-                elif entity.state in ("chase", "strike"):
-                    pygame.draw.circle(
-                        self.screen, (180, 0, 0), (cx, cy), 13, 1
-                    )
 
     def draw_player(self, player, camera, sprite_manager=None):
         screen_rect = camera.apply(player.rect)
@@ -225,26 +193,40 @@ class Renderer:
         elif player.is_sprinting:
             pygame.draw.circle(self.screen, (180, 180, 180), (cx, cy), 13, 1)
 
-    def draw_flashlight(self, player, camera, flashlight):
+    def draw_flashlight(self, player, camera, flashlight, entities=None):
         px, py = camera.apply_point(
             player.rect.centerx, player.rect.centery
         )
 
-        if flashlight.is_on and flashlight.battery > 0 and not flashlight.overheated:
-            darkness = 200
-        else:
-            darkness = 235
-
-        self._dark_overlay.fill((0, 0, 0, darkness))
-
-        ambient_radius = 80 if (
-            flashlight.is_on and flashlight.battery > 0
-            and not flashlight.overheated
-        ) else 45
-        self._punch_circle(px, py, ambient_radius)
+        self._dark_overlay.fill((0, 0, 0, 255))
+        self._punch_circle(px, py, 45)
 
         if flashlight.is_on and flashlight.battery > 0 and not flashlight.overheated:
             self._cut_flashlight_cone(px, py, player.facing, flashlight)
+
+        if entities and flashlight.is_on and flashlight.battery > 0:
+            angle_map = {"right": 0, "down": 90, "left": 180, "up": 270}
+            ca = math.radians(angle_map.get(player.facing, 0))
+            sp = math.radians(75)
+            for entity in entities:
+                if not entity.alive:
+                    continue
+                dx = entity.rect.centerx - player.rect.centerx
+                dy = entity.rect.centery - player.rect.centery
+                dist = (dxdx + dydy) ** 0.5
+                if dist > FLASHLIGHT_RADIUS * 1.3:
+                    continue
+                at = math.atan2(dy, dx)
+                df = abs(at - ca)
+                if df > math.pi:
+                    df = 2 * math.pi - df
+                if df <= sp:
+                    ex, ey = camera.apply_point(
+                        entity.rect.centerx, entity.rect.centery
+                    )
+                    pygame.draw.circle(
+                        self._dark_overlay, (0, 0, 0, 0), (ex, ey), 35
+                    )
 
         self.screen.blit(self._dark_overlay, (0, 0))
 
@@ -269,7 +251,6 @@ class Renderer:
         radius       = int(FLASHLIGHT_RADIUS * 1.3 * max(
             0.4, flashlight.battery / FLASHLIGHT_MAX_BATTERY
         ))
-
         steps  = 28
         points = [(px, py)]
         for i in range(steps + 1):
@@ -279,7 +260,6 @@ class Renderer:
                 py + math.sin(a) * radius
             ))
         pygame.draw.polygon(self._dark_overlay, (0, 0, 0, 0), points)
-
         for r, alpha in [(60, 30), (40, 60), (20, 0)]:
             pygame.draw.circle(
                 self._dark_overlay, (0, 0, 0, alpha), (px, py), r

@@ -34,17 +34,42 @@ class Game:
         self.settings_menu = None
         self.save_manager = None
         self.sprite_manager = None
+        self.sound_manager = None
+
+        # Footstep timer for player walking sound
+        self._footstep_timer    = 0.0
+        self._footstep_interval = 0.35  # seconds between each footstep
+
+        # Enemy footstep timer (heartbeat proximity)
+        self._enemy_step_timer    = 0.0
+        self._enemy_step_interval = 0.5  # seconds between enemy footstep sounds
+
+        # Track if death sound has played this session
+        self._death_sound_played = False
 
     def show_title(self):
         from ui.menu import MainMenu
         from saves.save_manager import SaveManager
+        from systems.sound_manager import SoundManager
+
         self.state = STATE_TITLE
-        self._menu = MainMenu(self.screen)
+
+        # Init sound manager once for the whole game
+        if not self.sound_manager:
+            self.sound_manager = SoundManager()
+
+        self._menu = MainMenu(self.screen, self.sound_manager)
         self.save_manager = SaveManager()
 
     def new_game(self):
         self._init_systems()
         self.state = STATE_PLAYING
+        self._death_sound_played = False
+
+        # --- STOP MENU MUSIC, START GAME AMBIENT ---
+        # Change filename: assets/sounds/ambient/game_ambient.wav
+        if self.sound_manager:
+            self.sound_manager.play_music("game_ambient", volume=0.35)
 
     def continue_game(self):
         self._init_systems()
@@ -52,6 +77,12 @@ class Game:
             self.state = STATE_PLAYING
         else:
             self.state = STATE_PLAYING
+        self._death_sound_played = False
+
+        # --- STOP MENU MUSIC, START GAME AMBIENT ---
+        # Change filename: assets/sounds/ambient/game_ambient.wav
+        if self.sound_manager:
+            self.sound_manager.play_music("game_ambient", volume=0.35)
 
     def _init_systems(self):
         from entities.player import Player
@@ -72,6 +103,7 @@ class Game:
         from systems.sanity import SanitySystem
         from systems.heartbeat import HeartbeatSystem
         from systems.jumpscare import JumpscareSystem
+        from systems.sound_manager import SoundManager
         from ui.hud import HUD
         from ui.glitch_fx import GlitchFX
         from ui.lore_display import LoreDisplay
@@ -81,24 +113,32 @@ class Game:
 
         map_loader = MapLoader("data/rooms.json")
 
-        self.tilemap = Tilemap("data/rooms.json")
-        self.camera = Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
-        self.renderer = Renderer(self.screen)
+        self.tilemap      = Tilemap("data/rooms.json")
+        self.camera       = Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.renderer     = Renderer(self.screen)
         self.sprite_manager = SpriteManager()
         self.sprite_manager.load_all()
-        self.flashlight = Flashlight()
-        self.signal_sys = SignalSystem()
-        self.event_sys = EventSystem(self)
-        self.audio_det = AudioDetection()
-        self.sanity_sys = SanitySystem()
-        self.heartbeat = HeartbeatSystem()
-        self.jumpscare = JumpscareSystem(self.screen)
-        self.hud = HUD(self.screen)
-        self.glitch_fx = GlitchFX(self.screen)
+        self.flashlight   = Flashlight()
+        self.signal_sys   = SignalSystem()
+        self.event_sys    = EventSystem(self)
+        self.audio_det    = AudioDetection()
+        self.sanity_sys   = SanitySystem()
+        self.heartbeat    = HeartbeatSystem()
+        self.jumpscare    = JumpscareSystem(self.screen)
+        self.hud          = HUD(self.screen)
+        self.glitch_fx    = GlitchFX(self.screen)
         self.lore_display = LoreDisplay(self.screen)
         self.settings_menu = SettingsMenu(self.screen)
         self.save_manager = SaveManager()
-    
+
+        # Init sound manager if not already created in show_title()
+        if not self.sound_manager:
+            self.sound_manager = SoundManager()
+
+        # --- INJECT sound_manager INTO ALL SYSTEMS THAT NEED IT ---
+        self.flashlight.sound_manager  = self.sound_manager
+        self.sanity_sys.sound_manager  = self.sound_manager
+        self.jumpscare.sound_manager   = self.sound_manager
 
         px, py = map_loader.player_spawn
         self.player = Player(self, px, py)
@@ -118,17 +158,24 @@ class Game:
             Watcher(s["tile_x"], s["tile_y"])
             for s in map_loader.enemy_spawns
         ]
+        # Inject sound manager into watchers
+        for w in self.watchers:
+            w.sound_manager = self.sound_manager
 
-        # Crawlers — spawn in corners
         self.crawlers = [
             Crawler(36, 19),
             Crawler(2, 19),
         ]
+        # Inject sound manager into crawlers
+        for c in self.crawlers:
+            c.sound_manager = self.sound_manager
 
-        # Mimic — spawns in middle corridor
         self.mimics = [
             Mimic(19, 11),
         ]
+        # Inject sound manager into mimics
+        for m in self.mimics:
+            m.sound_manager = self.sound_manager
 
         self.lore_notes = [
             LoreNote(note, note["tile_x"], note["tile_y"])
@@ -156,7 +203,6 @@ class Game:
                 self._on_keydown(event.key)
 
     def _on_keydown(self, key):
-        # Settings menu intercepts input
         if self.settings_menu and self.settings_menu.active:
             self.settings_menu.handle_input(key)
             return
@@ -166,6 +212,7 @@ class Game:
                 self.running = False
             elif key == pygame.K_RETURN:
                 selected = self._menu.get_selected()
+                self._menu.on_select()  # play menu select sound
                 if selected == 'CONTINUE':
                     self.continue_game()
                 elif selected == 'NEW GAME':
@@ -210,9 +257,21 @@ class Game:
             if not tower.active and tower.is_near(self.player.rect):
                 tower.activate()
                 self.signal_sys.activate_tower(boost=25.0)
+
+                # --- TOWER REPAIR SOUND ---
+                # Change filename: assets/sounds/sfx/tower_repair.wav
+                if self.sound_manager:
+                    self.sound_manager.play("tower_repair", volume=0.9)
+
                 if self.signal_sys.towers_active >= self.signal_sys.total_towers:
                     self._save_game()
                     self.state = STATE_WIN
+
+                    # --- WIN SOUND ---
+                    # Change filename: assets/sounds/sfx/win.wav
+                    if self.sound_manager:
+                        self.sound_manager.stop_music()
+                        self.sound_manager.play("win", volume=1.0)
                 return
 
         for note in self.lore_notes:
@@ -286,8 +345,16 @@ class Game:
                 self.sanity_sys.take_hit(25.0)
 
         self._check_items()
+        self._update_player_footstep()
+        self._update_enemy_footstep()
 
         if self.player.health <= 0:
+            # --- PLAYER DEATH SOUND ---
+            # Change filename: assets/sounds/sfx/player_death.wav
+            if self.sound_manager and not self._death_sound_played:
+                self.sound_manager.stop_music()
+                self.sound_manager.play("player_death", volume=1.0)
+                self._death_sound_played = True
             self.state = STATE_GAMEOVER
 
     def _check_items(self):
@@ -295,10 +362,52 @@ class Game:
             if item.active and self.player.rect.colliderect(item.rect):
                 if item.kind == "battery":
                     self.flashlight.add_battery(30)
+                    # --- ITEM PICKUP SOUND ---
+                    # Change filename: assets/sounds/sfx/item_pickup.wav
+                    if self.sound_manager:
+                        self.sound_manager.play("item_pickup", volume=0.8)
                 elif item.kind == "medkit":
                     self.player.heal(30)
+                    # --- HEAL SOUND ---
+                    # Change filename: assets/sounds/sfx/heal.wav
+                    if self.sound_manager:
+                        self.sound_manager.play("heal", volume=0.8)
+                        self.sound_manager.play("item_pickup", volume=0.6)
                 item.active = False
                 self.items.remove(item)
+
+    def _update_player_footstep(self):
+        # --- PLAYER FOOTSTEP SOUND ---
+        # Plays periodically while the player is moving
+        # Change filename: assets/sounds/sfx/player_footstep.wav
+        if self.player.is_moving and self.sound_manager:
+            # Adjust interval based on movement speed
+            if self.player.is_sprinting:
+                self._footstep_interval = 0.22
+            elif self.player.is_crouching:
+                self._footstep_interval = 0.55
+            else:
+                self._footstep_interval = 0.35
+
+            self._footstep_timer += self.dt
+            if self._footstep_timer >= self._footstep_interval:
+                self._footstep_timer = 0.0
+                self.sound_manager.play("player_footstep", volume=0.4)
+        else:
+            self._footstep_timer = 0.0
+
+    def _update_enemy_footstep(self):
+        # --- ENEMY FOOTSTEP SOUND ---
+        # Plays when any enemy is close enough (heartbeat intensity is high)
+        # Change filename: assets/sounds/sfx/enemy_footstep.wav
+        if self.sound_manager and self.heartbeat.intensity > 0.5:
+            self._enemy_step_timer += self.dt
+            if self._enemy_step_timer >= self._enemy_step_interval:
+                self._enemy_step_timer = 0.0
+                vol = min(1.0, self.heartbeat.intensity)
+                self.sound_manager.play("enemy_footstep", volume=vol)
+        else:
+            self._enemy_step_timer = 0.0
 
     def _draw(self):
         self.screen.fill(BLACK)
@@ -440,9 +549,9 @@ class Game:
         overlay.fill((0, 0, 0, 160))
         self.screen.blit(overlay, (0, 0))
         font = pygame.font.SysFont("consolas", 36, bold=True)
-        sub = pygame.font.SysFont("consolas", 14)
+        sub  = pygame.font.SysFont("consolas", 14)
         small = pygame.font.SysFont("consolas", 13)
-        txt = font.render("// PAUSED", True, (180, 0, 0))
+        txt  = font.render("// PAUSED", True, (180, 0, 0))
         hint = sub.render(
             "[ ESC ] RESUME [ Q ] QUIT", True, (60, 60, 60)
         )
@@ -459,8 +568,8 @@ class Game:
     def _draw_gameover(self):
         self.screen.fill((5, 0, 0))
         font = pygame.font.SysFont("consolas", 52, bold=True)
-        sub = pygame.font.SysFont("consolas", 14)
-        txt = font.render("YOU DIED", True, (180, 0, 0))
+        sub  = pygame.font.SysFont("consolas", 14)
+        txt  = font.render("YOU DIED", True, (180, 0, 0))
         hint = sub.render(
             "[ R ] RETRY [ ESC ] TITLE", True, (60, 60, 60)
         )
@@ -472,8 +581,8 @@ class Game:
     def _draw_win(self):
         self.screen.fill((0, 5, 0))
         font = pygame.font.SysFont("consolas", 44, bold=True)
-        sub = pygame.font.SysFont("consolas", 14)
-        txt = font.render("SIGNAL RESTORED", True, (0, 180, 60))
+        sub  = pygame.font.SysFont("consolas", 14)
+        txt  = font.render("SIGNAL RESTORED", True, (0, 180, 60))
         hint = sub.render(
             "[ R ] PLAY AGAIN [ ESC ] TITLE", True, (60, 60, 60)
         )

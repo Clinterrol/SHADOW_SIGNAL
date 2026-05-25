@@ -14,7 +14,7 @@ class Crawler:
         )
         self.alive         = True
         self.speed         = 0
-        self.state         = "hidden"   # hidden, crawling, chase, attack
+        self.state         = "hidden"   
         self.vel_x         = 0.0
         self.vel_y         = 0.0
         self._last_known_x = None
@@ -26,6 +26,10 @@ class Crawler:
         self._roam_dy      = 0.0
         self.color         = (80, 40, 0)
 
+        self._prev_state   = "hidden"  
+
+        self.sound_manager = None 
+
     def update(self, dt, player, flashlight, signal_sys, tilemap):
         if not self.alive:
             return
@@ -36,16 +40,23 @@ class Crawler:
         self._move(dt, player, tilemap)
 
     def _update_state(self, dt, dist, signal_sys):
+        prev = self.state
+
         if self.state == "hidden":
             self._hide_timer -= dt
             if self._hide_timer <= 0:
                 self.state       = "crawling"
                 self._roam_timer = 0.0
+          
+                if self.sound_manager:
+                    self.sound_manager.play("crawler_skitter", volume=0.7)
 
         elif self.state == "crawling":
             if dist <= TILE_SIZE * 6:
                 self.state = "chase"
-            # Re-hide randomly
+
+                if self.sound_manager:
+                    self.sound_manager.play("crawler_skitter", volume=1.0)
             if random.random() < 0.001:
                 self.state       = "hidden"
                 self._hide_timer = random.uniform(3.0, 10.0)
@@ -60,6 +71,8 @@ class Crawler:
             self._attack_timer -= dt
             if self._attack_timer <= 0:
                 self.state = "chase"
+
+        self._prev_state = prev
 
     def _update_speed(self, signal_sys):
         if self.state == "hidden":
