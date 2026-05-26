@@ -77,7 +77,7 @@ class SpriteManager:
                 self.sprites["enemies"][name] = None
                 continue
             img = pygame.image.load(path).convert_alpha()
-            img = pygame.transform.scale(img, (40, 40))
+            img = pygame.transform.scale(img, (64, 64))
             self.sprites["enemies"][name] = img
             print(f"[SpriteManager] Enemy loaded: {name}")
 

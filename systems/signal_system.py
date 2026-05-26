@@ -17,6 +17,14 @@ class SignalSystem:
         self._flicker_timer    = 0.0
 
     def update(self, dt):
+        # All towers online — signal locked at max, no decay
+        if self.towers_active >= self.total_towers:
+            self.stability         = SIGNAL_MAX
+            self.is_critical       = False
+            self.is_blackout       = False
+            self.lights_flickering = False
+            return
+
         tower_bonus    = self.towers_active * 0.35
         effective_rate = max(0.0, SIGNAL_DECAY_RATE - tower_bonus)
         self.stability = max(0.0, self.stability - effective_rate * dt)
@@ -52,7 +60,7 @@ class SignalSystem:
         self.stability = min(SIGNAL_MAX, self.stability + boost)
 
     def force_interference(self, duration=2.0):
-        self._pulse_active = True
+        self._pulse_active   = True
         self._pulse_duration = duration
 
     @property

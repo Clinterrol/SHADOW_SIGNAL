@@ -37,12 +37,12 @@ class Game:
         self.sound_manager = None
 
         # Footstep timer for player walking sound
-        self._footstep_timer    = 0.0
-        self._footstep_interval = 0.35  # seconds between each footstep
+        self._footstep_timer = 0.0
+        self._footstep_interval = 0.35 # seconds between each footstep
 
         # Enemy footstep timer (heartbeat proximity)
-        self._enemy_step_timer    = 0.0
-        self._enemy_step_interval = 0.5  # seconds between enemy footstep sounds
+        self._enemy_step_timer = 0.0
+        self._enemy_step_interval = 0.5 # seconds between enemy footstep sounds
 
         # Track if death sound has played this session
         self._death_sound_played = False
@@ -113,20 +113,20 @@ class Game:
 
         map_loader = MapLoader("data/rooms.json")
 
-        self.tilemap      = Tilemap("data/rooms.json")
-        self.camera       = Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
-        self.renderer     = Renderer(self.screen)
+        self.tilemap = Tilemap("data/rooms.json")
+        self.camera = Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.renderer = Renderer(self.screen)
         self.sprite_manager = SpriteManager()
         self.sprite_manager.load_all()
-        self.flashlight   = Flashlight()
-        self.signal_sys   = SignalSystem()
-        self.event_sys    = EventSystem(self)
-        self.audio_det    = AudioDetection()
-        self.sanity_sys   = SanitySystem()
-        self.heartbeat    = HeartbeatSystem()
-        self.jumpscare    = JumpscareSystem(self.screen)
-        self.hud          = HUD(self.screen)
-        self.glitch_fx    = GlitchFX(self.screen)
+        self.flashlight = Flashlight()
+        self.signal_sys = SignalSystem()
+        self.event_sys = EventSystem(self)
+        self.audio_det = AudioDetection()
+        self.sanity_sys = SanitySystem()
+        self.heartbeat = HeartbeatSystem()
+        self.jumpscare = JumpscareSystem(self.screen)
+        self.hud = HUD(self.screen)
+        self.glitch_fx = GlitchFX(self.screen)
         self.lore_display = LoreDisplay(self.screen)
         self.settings_menu = SettingsMenu(self.screen)
         self.save_manager = SaveManager()
@@ -136,9 +136,9 @@ class Game:
             self.sound_manager = SoundManager()
 
         # --- INJECT sound_manager INTO ALL SYSTEMS THAT NEED IT ---
-        self.flashlight.sound_manager  = self.sound_manager
-        self.sanity_sys.sound_manager  = self.sound_manager
-        self.jumpscare.sound_manager   = self.sound_manager
+        self.flashlight.sound_manager = self.sound_manager
+        self.sanity_sys.sound_manager = self.sound_manager
+        self.jumpscare.sound_manager = self.sound_manager
 
         px, py = map_loader.player_spawn
         self.player = Player(self, px, py)
@@ -212,7 +212,7 @@ class Game:
                 self.running = False
             elif key == pygame.K_RETURN:
                 selected = self._menu.get_selected()
-                self._menu.on_select()  # play menu select sound
+                self._menu.on_select() # play menu select sound
                 if selected == 'CONTINUE':
                     self.continue_game()
                 elif selected == 'NEW GAME':
@@ -549,9 +549,9 @@ class Game:
         overlay.fill((0, 0, 0, 160))
         self.screen.blit(overlay, (0, 0))
         font = pygame.font.SysFont("consolas", 36, bold=True)
-        sub  = pygame.font.SysFont("consolas", 14)
+        sub = pygame.font.SysFont("consolas", 14)
         small = pygame.font.SysFont("consolas", 13)
-        txt  = font.render("// PAUSED", True, (180, 0, 0))
+        txt = font.render("// PAUSED", True, (180, 0, 0))
         hint = sub.render(
             "[ ESC ] RESUME [ Q ] QUIT", True, (60, 60, 60)
         )
@@ -568,8 +568,8 @@ class Game:
     def _draw_gameover(self):
         self.screen.fill((5, 0, 0))
         font = pygame.font.SysFont("consolas", 52, bold=True)
-        sub  = pygame.font.SysFont("consolas", 14)
-        txt  = font.render("YOU DIED", True, (180, 0, 0))
+        sub = pygame.font.SysFont("consolas", 14)
+        txt = font.render("YOU DIED", True, (180, 0, 0))
         hint = sub.render(
             "[ R ] RETRY [ ESC ] TITLE", True, (60, 60, 60)
         )
@@ -581,8 +581,8 @@ class Game:
     def _draw_win(self):
         self.screen.fill((0, 5, 0))
         font = pygame.font.SysFont("consolas", 44, bold=True)
-        sub  = pygame.font.SysFont("consolas", 14)
-        txt  = font.render("SIGNAL RESTORED", True, (0, 180, 60))
+        sub = pygame.font.SysFont("consolas", 14)
+        txt = font.render("SIGNAL RESTORED", True, (0, 180, 60))
         hint = sub.render(
             "[ R ] PLAY AGAIN [ ESC ] TITLE", True, (60, 60, 60)
         )

@@ -5,14 +5,14 @@ from settings import *
 
 class MainMenu:
     def __init__(self, screen, sound_manager=None):
-        self.screen = screen
-        self.selected = 0
-        self.font_big = pygame.font.SysFont("consolas", 64, bold=True)
-        self.font_med = pygame.font.SysFont("consolas", 18)
-        self.font_small = pygame.font.SysFont("consolas", 13)
+        self.screen        = screen
+        self.selected      = 0
+        self.font_big      = pygame.font.SysFont("consolas", 52, bold=True)
+        self.font_med      = pygame.font.SysFont("consolas", 20)
+        self.font_small    = pygame.font.SysFont("consolas", 13)
         self.sound_manager = sound_manager
 
-        has_save = os.path.exists("saves/save_data.json")
+        has_save     = os.path.exists("saves/save_data.json")
         self.options = (
             ['CONTINUE', 'NEW GAME', 'SETTINGS', 'QUIT']
             if has_save else
@@ -20,79 +20,90 @@ class MainMenu:
         )
         self.has_save = has_save
 
-        # --- MENU MUSIC ---
-        # Change "menu_music" filename in sound_manager.py → _music_files["menu_music"]
-        # File: assets/sounds/ambient/menu_music.wav
+        # Load background image
+        # File: assets/images/menu_bg.png
+        bg_path = "assets/images/menu_bg.png"
+        if os.path.exists(bg_path):
+            raw      = pygame.image.load(bg_path).convert()
+            self._bg = pygame.transform.scale(raw, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        else:
+            self._bg = None
+
+        # Subtle dark overlay — keeps background visible
+        self._overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        self._overlay.fill((0, 0, 0, 100))
+
         if self.sound_manager:
             self.sound_manager.play_music("menu_music", volume=0.4)
 
     def handle_input(self, key):
-        if key == pygame.K_w or key == pygame.K_UP:
+        if key in (pygame.K_w, pygame.K_UP):
             self.selected = (self.selected - 1) % len(self.options)
-            # --- MENU HOVER SOUND ---
-            # Change filename: assets/sounds/sfx/menu_hover.wav
             if self.sound_manager:
                 self.sound_manager.play("menu_hover", volume=0.6)
-
-        elif key == pygame.K_s or key == pygame.K_DOWN:
+        elif key in (pygame.K_s, pygame.K_DOWN):
             self.selected = (self.selected + 1) % len(self.options)
-            # --- MENU HOVER SOUND ---
-            # Change filename: assets/sounds/sfx/menu_hover.wav
             if self.sound_manager:
                 self.sound_manager.play("menu_hover", volume=0.6)
 
     def on_select(self):
-        # --- MENU SELECT SOUND ---
-        # Change filename: assets/sounds/sfx/menu_select.wav
         if self.sound_manager:
-            self.sound_manager.play("menu_select", volume=0.8)
+            self.sound_manager.play("menu_hover", volume=0.8)
 
     def get_selected(self):
         return self.options[self.selected]
 
     def draw(self):
-        self.screen.fill((5, 5, 5))
+        # Background
+        if self._bg:
+            self.screen.blit(self._bg, (0, 0))
+        else:
+            self.screen.fill((5, 5, 5))
 
-        pygame.draw.rect(self.screen, (120, 0, 0),
-                         (60, SCREEN_HEIGHT//2 - 90,
-                          SCREEN_WIDTH - 120, 2))
+        # Subtle overlay
+        self.screen.blit(self._overlay, (0, 0))
 
-        title = self.font_big.render("SHADOW SIGNAL", True, (180, 0, 0))
+        # Title
+        shadow = self.font_big.render("SHADOW SIGNAL", True, (60, 0, 0))
+        self.screen.blit(shadow, shadow.get_rect(
+            center=(SCREEN_WIDTH // 2 + 2, SCREEN_HEIGHT // 2 - 48 + 2)))
+
+        title = self.font_big.render("SHADOW SIGNAL", True, (140, 0, 0))
         self.screen.blit(title, title.get_rect(
-            center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2 - 50)))
+            center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 48)))
 
+        # Subtitle
         sub = self.font_small.render(
-            "UNDERGROUND RESEARCH FACILITY // SIGNAL LOST",
-            True, (60, 60, 60)
+            "UNDERGROUND RESEARCH FACILITY  -  SIGNAL LOST",
+            True, (80, 60, 60)
         )
         self.screen.blit(sub, sub.get_rect(
-            center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2 + 10)))
+            center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 5)))
 
-        pygame.draw.rect(self.screen, (80, 0, 0),
-                         (60, SCREEN_HEIGHT//2 + 28,
-                          SCREEN_WIDTH - 120, 1))
-
+        # Menu options
         for i, option in enumerate(self.options):
             if i == self.selected:
-                text = f"> {option}"
-                color = (200, 200, 200)
+                text  = f">  {option}"
+                color = (220, 220, 220)
+                bar   = pygame.Surface((300, 30), pygame.SRCALPHA)
+                bar.fill((120, 0, 0, 60))
+                self.screen.blit(bar, bar.get_rect(
+                    center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60 + i * 38)))
             else:
-                text = f" {option}"
-                color = (60, 60, 60)
+                text  = f"   {option}"
+                color = (100, 80, 80)
             opt = self.font_med.render(text, True, color)
             self.screen.blit(opt, opt.get_rect(
-                center=(SCREEN_WIDTH//2,
-                        SCREEN_HEIGHT//2 + 60 + i * 35)))
+                center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60 + i * 38)))
 
+        # Controls hint
         hint = self.font_small.render(
-            "W/S NAVIGATE ENTER SELECT",
-            True, (35, 35, 35)
+            "W / S   NAVIGATE        ENTER   SELECT",
+            True, (40, 30, 30)
         )
         self.screen.blit(hint, hint.get_rect(
-            center=(SCREEN_WIDTH//2, SCREEN_HEIGHT - 30)))
+            center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 28)))
 
-        ver = self.font_small.render(
-            "BUILD 0.1 // PHASE 6", True, (25, 25, 25)
-        )
-        self.screen.blit(ver, (SCREEN_WIDTH - 180, SCREEN_HEIGHT - 18))
-
+        # Version
+        ver = self.font_small.render("BUILD 0.1", True, (30, 20, 20))
+        self.screen.blit(ver, (SCREEN_WIDTH - 90, SCREEN_HEIGHT - 18))

@@ -67,12 +67,7 @@ class JumpscareSystem:
         self._cooldown    = self._cooldown_time
         self._current_msg = random.choice(self._messages)
 
-        # --- JUMPSCARE STING SOUND ---
-        # Each message maps to its own sting file in sound_manager.py
-        # Files: assets/sounds/sfx/jumpscare_seesyou.wav
-        #        assets/sounds/sfx/jumpscare_run.wav
-        #        assets/sounds/sfx/jumpscare_behind.wav
-        #        assets/sounds/sfx/jumpscare_dontlook.wav
+
         if self.sound_manager:
             key = self.sound_manager.jumpscare_sound_map.get(self._current_msg)
             if key:

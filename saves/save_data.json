@@ -1,15 +1,15 @@
 {
   "player": {
     "health": 100,
-    "tile_x": 15,
-    "tile_y": 12
+    "tile_x": 11,
+    "tile_y": 2
   },
   "flashlight": {
-    "battery": 53.09999999999706,
-    "is_on": true
+    "battery": 33.3328000000069,
+    "is_on": false
   },
   "signal": {
-    "stability": 57.11800000000338,
+    "stability": 0.0,
     "towers_active": 0
   },
   "towers": [
@@ -105,6 +105,6 @@
     }
   ],
   "sanity": {
-    "sanity": 28.683929147307115
+    "sanity": 0.0
   }
 }

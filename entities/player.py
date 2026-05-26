@@ -20,9 +20,13 @@ class Player:
         self.vel_y        = 0.0
         self.sound_radius = SOUND_RADIUS_WALK
 
+        # Sub-pixel accumulator so slow speeds aren't lost to int() truncation
+        self._frac_x = 0.0
+        self._frac_y = 0.0
+
         # Animation
         self._anim_timer  = 0.0
-        self._anim_speed  = 0.15   # seconds per frame
+        self._anim_speed  = 0.15
         self._frame_index = 0
 
     def update(self, dt, tilemap):
@@ -72,6 +76,7 @@ class Player:
             self.vel_x  = speed
             self.facing = "right"
 
+        # Normalize diagonal movement
         if self.vel_x != 0 and self.vel_y != 0:
             self.vel_x *= 0.7071
             self.vel_y *= 0.7071
@@ -79,9 +84,17 @@ class Player:
         self.is_moving = self.vel_x != 0 or self.vel_y != 0
 
     def _move(self, dt, tilemap):
-        self.rect.x += int(self.vel_x * dt)
+        self._frac_x += self.vel_x * dt
+        self._frac_y += self.vel_y * dt
+
+        move_x = int(self._frac_x)
+        move_y = int(self._frac_y)
+        self._frac_x -= move_x
+        self._frac_y -= move_y
+
+        self.rect.x += move_x
         self._resolve_collisions(tilemap, "x")
-        self.rect.y += int(self.vel_y * dt)
+        self.rect.y += move_y
         self._resolve_collisions(tilemap, "y")
 
         world_w = tilemap.cols * TILE_SIZE

@@ -28,9 +28,7 @@ class Flashlight:
 
         if self.heat >= FLASHLIGHT_OVERHEAT_MAX:
             if not self._was_overheated:
-                # --- FLASHLIGHT OVERHEAT SOUND ---
-                # Plays once when flashlight first overheats
-                # Change filename: assets/sounds/sfx/flashlight_overheat.wav
+        
                 if self.sound_manager:
                     self.sound_manager.play("flashlight_overheat", volume=0.9)
             self.overheated      = True
@@ -62,10 +60,6 @@ class Flashlight:
             return
         self.is_on = not self.is_on
 
-        # --- FLASHLIGHT TOGGLE SOUND ---
-        # Plays on/off click when pressing F
-        # Change filename: assets/sounds/sfx/flashlight_on.wav  (when turning on)
-        #                  assets/sounds/sfx/flashlight_off.wav (when turning off)
         if self.sound_manager:
             if self.is_on:
                 self.sound_manager.play("flashlight_on", volume=0.8)
